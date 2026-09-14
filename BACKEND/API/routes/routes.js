@@ -24,4 +24,26 @@ router.get('/getAll', async(req, res) => {
     }
 })
 
+router.delete('/delete/:id', async(req, res) => {
+    try {
+        const resultado = await modeloTarefa.findByIdAndDelete(req.params.id)
+        res.json(resultado)
+    } catch (error) {
+        res.status(400).json({ message: error.message })
+    }
+})
+
+router.patch('/update/:id', async(req, res) => {
+    try {
+        const id = req.params.id;
+        const novaTarefa = req.body;
+        const options = { new: true };
+        const result = await modeloTarefa.findByIdAndUpdate(
+            id, novaTarefa, options
+        )
+        res.json(result)
+    } catch (error) {
+        res.status(400).json({ message: error.message })
+    }
+})
 module.exports = router;
