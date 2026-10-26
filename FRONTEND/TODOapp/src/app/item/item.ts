@@ -17,6 +17,9 @@ export class Item {
   @Output()
   remover = new EventEmitter<Tarefa>();
 
+  @Output() 
+  modificaTarefa = new EventEmitter();
+
   removerTarefa() {
     this.remover.emit(this.tarefa);
   }

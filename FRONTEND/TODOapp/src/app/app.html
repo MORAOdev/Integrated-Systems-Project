@@ -5,11 +5,12 @@
         Adicionar Tarefa
     </button>
     <ul>
-        @for (tarefaDoLoop of arrayDeTarefas; track tarefaDoLoop) {
+        @for (tarefaDoLoop of arrayDeTarefas(); track tarefaDoLoop) {
             <li>
                 <app-item 
                     [tarefa]="tarefaDoLoop"
-                    (remover)="DELETE_tarefa($event)">
+                    (remover)="DELETE_tarefa($event)"
+                    (modificaTarefa)="UPDATE_tarefa(tarefaDoLoop)">
                 </app-item>
             </li>
         }
