@@ -88,10 +88,26 @@ export class App {
   }
   
   login(username: string, password: string) {
-    var credenciais = { "nome": username, "senha": password }
-    this.http.post(`${this.apiURL}/api/login`, credenciais).subscribe(resultado => {
-      this.tokenJWT = JSON.stringify(resultado);
-      this.READ_tarefas();
+    const nome = username.trim();
+    const senha = password.trim();
+
+    if (!nome || !senha) {
+      console.warn('Preencha usuário e senha antes de fazer login.');
+      return;
+    }
+
+    const credenciais = { nome, senha };
+
+    this.http.post(`${this.apiURL}/api/login`, credenciais).subscribe({
+      next: (resultado) => {
+        this.tokenJWT = JSON.stringify(resultado);
+        this.usuarioLogado.set(true);
+        this.READ_tarefas();
+      },
+      error: (erro) => {
+        console.error('Erro ao fazer login:', erro);
+        this.usuarioLogado.set(false);
+      }
     });
   }
 }
