@@ -12,6 +12,7 @@ export class App {
   protected readonly title = signal('TODOapp');
   arrayDeTarefas = signal<Tarefa[]>([]);
   apiURL: string;
+  usuarioLogado = signal(false);
 
   constructor(private http: HttpClient) {
     const isServer = typeof window === 'undefined';
