@@ -22,4 +22,21 @@ describe('App', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('h1')?.textContent).toContain('Hello, TODOapp');
   });
+
+  it('should call login when clicking the login button', async () => {
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+    const spy = spyOn(app, 'login');
+
+    const username = fixture.nativeElement.querySelector('input[placeholder="nome"]') as HTMLInputElement;
+    const password = fixture.nativeElement.querySelector('input[placeholder="senha"]') as HTMLInputElement;
+    const button = fixture.nativeElement.querySelector('button.btn-primary') as HTMLButtonElement;
+
+    username.value = 'branqs';
+    password.value = '1234';
+    button.click();
+
+    expect(spy).toHaveBeenCalledWith('branqs', '1234');
+  });
+  
 });
