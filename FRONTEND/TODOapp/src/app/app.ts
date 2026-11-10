@@ -14,6 +14,7 @@ export class App {
   arrayDeTarefas = signal<Tarefa[]>([]);
   apiURL: string;
   usuarioLogado = signal(false);
+  tokenJWT = '{ "token":""}';
 
   constructor(private http: HttpClient) {
     const isServer = typeof window === 'undefined';
