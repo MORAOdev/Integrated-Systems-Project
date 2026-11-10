@@ -15,7 +15,7 @@ router.post('/post', async(req, res) => {
     }
 })
 
-router.get('/getAll', async(req, res) => {
+router.get('/getAll', verificaJWT, async(req, res, next) => {
     try {
         const tarefas = await modeloTarefa.find();
         res.status(200).json(tarefas);
