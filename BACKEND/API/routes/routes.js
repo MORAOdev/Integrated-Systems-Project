@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router()
 const modeloTarefa = require('../models/tarefa');
 
-router.post('/post', async(req, res) => {
+router.post('/post', verificaJWT, async(req, res) => {
     const objetoTarefa = new modeloTarefa({
         descricao: req.body.descricao,
         statusRealizada: req.body.statusRealizada
@@ -24,7 +24,7 @@ router.get('/getAll', verificaJWT, async(req, res, next) => {
     }
 })
 
-router.delete('/delete/:id', async(req, res) => {
+router.delete('/delete/:id', verificaJWT, async(req, res) => {
     try {
         const resultado = await modeloTarefa.findByIdAndDelete(req.params.id)
         res.json(resultado)
@@ -33,7 +33,7 @@ router.delete('/delete/:id', async(req, res) => {
     }
 })
 
-router.patch('/update/:id', async(req, res) => {
+router.patch('/update/:id', verificaJWT, async(req, res) => {
     try {
         const id = req.params.id;
         const novaTarefa = req.body;
