@@ -19,9 +19,9 @@
       </ul>
     </div>
     <div *ngIf="!usuarioLogado()">
-      <input #username placeholder="nome" class="lg-text-input" />
+      <input #username placeholder="nome" class="lg-text-input" (keyup.enter)="login(username.value, password.value)" />
       <BR>
-      <input #password placeholder="senha" class="lg-text-input" />
-      <button class="btn-primary" >Login</button>
+      <input #password type="password" placeholder="senha" class="lg-text-input" (keyup.enter)="login(username.value, password.value)" />
+      <button class="btn-primary" type="button" (click)="login(username.value, password.value)">Login</button>
     </div>
 </div>
