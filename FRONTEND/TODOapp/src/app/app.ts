@@ -1,6 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { Tarefa } from './tarefa';
 import { HttpClient } from '@angular/common/http';
+import { HttpHeaders } from '@angular/common/http';
 
 @Component({
   selector: 'app-root',
@@ -52,10 +53,11 @@ export class App {
   }
 
   READ_tarefas() {
-    this.http.get<Tarefa[]>(`${this.apiURL}/api/getAll`).subscribe({
-      next: (resultado) => this.arrayDeTarefas.set(resultado),
-      error: (erro) => console.error('Erro ao buscar tarefas:', erro)
-    });
+    const idToken = new HttpHeaders().set("id-token", JSON.parse(this.tokenJWT).token);
+    this.http.get<Tarefa[]>(`${this.apiURL}/api/getAll`, { 'headers': idToken }).subscribe(
+      (resultado) => { this.arrayDeTarefas.set(resultado); this.usuarioLogado.set(true) },
+      (error) => { this.usuarioLogado.set(false) }
+    )
   }
 
   UPDATE_tarefa(tarefaAserModificada: Tarefa) {
@@ -81,6 +83,14 @@ export class App {
         this.READ_tarefas();
       },
       error: (erro) => console.error('Erro ao remover tarefa:', erro)
+    });
+  }
+  
+  login(username: string, password: string) {
+    var credenciais = { "nome": username, "senha": password }
+    this.http.post(`${this.apiURL}/api/login`, credenciais).subscribe(resultado => {
+      this.tokenJWT = JSON.stringify(resultado);
+      this.READ_tarefas();
     });
   }
 }
