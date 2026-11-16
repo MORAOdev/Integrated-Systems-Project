@@ -1,7 +1,9 @@
 const express = require('express');
-const router = express.Router()
+const router = express.Router();
+const mongoose = require('mongoose');
 const modeloTarefa = require('../models/tarefa');
 const userModel = require('../models/user');
+var jwt = require('jsonwebtoken');
 
 router.post('/post', verificaJWT, async(req, res) => {
     const objetoTarefa = new modeloTarefa({
@@ -48,29 +50,29 @@ router.patch('/update/:id', verificaJWT, async(req, res) => {
     }
 })
 
-var jwt = require('jsonwebtoken');
-router.post('/login', (req, res, next) => {
-    if (req.body.nome === 'branqs' && req.body.senha === '1234') {
-        const token = jwt.sign({ id: req.body.nome }, 'segredo', { expiresIn: 300 });
-        return res.json({ auth: true, token: token });
-    }
-    res.status(500).json({ message: 'Login invalido!' });
-})
-
-var jwt = require('jsonwebtoken');
 router.post('/login', async (req, res) => {
     try {
-        const data = await userModel.findOne({ 'nome': req.body.nome });
+        let data = await userModel.findOne({ 'nome': req.body.nome });
+        if (!data) {
+            try {
+                const tasksDb = mongoose.connection.useDb('tasksDB', { useCache: true });
+                const userModelTasksDb = tasksDb.models.User || tasksDb.model('User', userModel.schema);
+                data = await userModelTasksDb.findOne({ 'nome': req.body.nome });
+            } catch (err) {
+                // caso o banco tasksDB não exista ou ocorra erro
+            }
+        }
+
         if (data != null && data.senha === req.body.senha) {
-            const token = jwt.sign({ id: req.body.user }, 'segredo',
+            const token = jwt.sign({ id: req.body.nome || req.body.user }, 'segredo',
                 { expiresIn: 300 });
-            return res.json({ token: token });
+            return res.json({ auth: true, token: token });
         }
         res.status(500).json({ message: 'Login invalido!' });
     } catch (error) {
-        res.status(500).json({ message: error.message })
+        res.status(500).json({ message: error.message });
     }
-})
+});
 
 function verificaJWT(req, res, next) {
     const token = req.headers['id-token'];
