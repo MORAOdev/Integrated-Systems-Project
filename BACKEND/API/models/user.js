@@ -8,7 +8,8 @@ var userSchema = new mongoose.Schema({
   salt: String
 },
   {
-    versionKey: false
+    versionKey: false,
+    collection: 'users'
   }
 );
-module.exports = mongoose.model('User', userSchema)
+module.exports = mongoose.model('User', userSchema, 'users');
