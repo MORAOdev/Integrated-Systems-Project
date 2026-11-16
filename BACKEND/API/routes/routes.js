@@ -53,46 +53,28 @@ router.patch('/update/:id', verificaJWT, async(req, res) => {
 router.post('/login', async (req, res) => {
     try {
         const nomeBusca = req.body.nome;
-
         let data = null;
-        let dbEncontrado = '';
 
-        // 1. Tenta buscar no banco tasksDB primeiro (onde o documento com hash/salt foi cadastrado)
+        // 1. Tenta buscar no banco tasksDB diretamente na collection users
         try {
-            const tasksDb = mongoose.connection.useDb('tasksDB', { useCache: true });
-            const userModelTasksDb = tasksDb.models.User || tasksDb.model('User', userModel.schema, 'users');
-            const docTasksDb = await userModelTasksDb.findOne({ 'nome': nomeBusca });
-            if (docTasksDb && docTasksDb.hash) {
-                data = docTasksDb;
-                dbEncontrado = 'tasksDB';
-            }
+            data = await mongoose.connection.client.db('tasksDB').collection('users').findOne({ 'nome': nomeBusca });
         } catch (err) {
             console.error('Erro ao buscar no tasksDB:', err);
         }
 
-        // 2. Se nao encontrou no tasksDB com hash, tenta na conexao ativa
+        // 2. Se nao encontrou, tenta via userModel na conexao ativa
         if (!data) {
             try {
-                const docConexao = await userModel.findOne({ 'nome': nomeBusca });
-                if (docConexao && (!data || docConexao.hash)) {
-                    data = docConexao;
-                    dbEncontrado = mongoose.connection.name || 'padrao';
-                }
+                data = await userModel.findOne({ 'nome': nomeBusca });
             } catch (err) {
-                console.error('Erro ao buscar na conexao ativa:', err);
+                console.error('Erro ao buscar no userModel:', err);
             }
         }
 
         // 3. Se ainda nao encontrou, tenta no banco test
         if (!data) {
             try {
-                const testDb = mongoose.connection.useDb('test', { useCache: true });
-                const userModelTestDb = testDb.models.User || testDb.model('User', userModel.schema, 'users');
-                const docTest = await userModelTestDb.findOne({ 'nome': nomeBusca });
-                if (docTest) {
-                    data = docTest;
-                    dbEncontrado = 'test';
-                }
+                data = await mongoose.connection.client.db('test').collection('users').findOne({ 'nome': nomeBusca });
             } catch (err) {
                 console.error('Erro ao buscar no test:', err);
             }
@@ -116,11 +98,10 @@ router.post('/login', async (req, res) => {
             message: 'Login invalido!',
             motivo: 'Senha incorreta.',
             detalhes: {
-                banco: dbEncontrado,
                 idNoBanco: data._id,
                 usuarioEncontrado: data.nome,
-                saltNoBanco: data.salt || '(vazio ou nao existe neste documento)',
-                hashNoBanco: data.hash || '(vazio ou nao existe neste documento)',
+                saltNoBanco: data.salt || '(vazio ou nao existe)',
+                hashNoBanco: data.hash || '(vazio ou nao existe)',
                 hashCalculado: hashCalculado
             }
         });

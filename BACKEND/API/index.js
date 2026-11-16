@@ -23,11 +23,11 @@ app.use('/api', routes);
 
 // Configurando a conexao com o Banco de Dados
 const userArgs = process.argv.slice(2);
-const defaultMongoURL = 'mongodb+srv://vinicius_db:Database123@cluster-database01.d4dt6oi.mongodb.net/?appName=cluster-database01';
+const defaultMongoURL = 'mongodb+srv://vinicius_db:Database123@cluster-database01.d4dt6oi.mongodb.net/tasksDB?appName=cluster-database01';
 const mongoURL = process.env.MONGODB_URI || process.env.MONGO_URL || userArgs[0] || defaultMongoURL;
 
 if (mongoURL) {
-    mongoose.connect(mongoURL);
+    mongoose.connect(mongoURL, { dbName: 'tasksDB' });
     mongoose.Promise = global.Promise;
     const db = mongoose.connection;
     db.on('error', (error) => {
