@@ -63,7 +63,7 @@ router.post('/login', async (req, res) => {
             }
         }
 
-        if (data != null && data.senha === req.body.senha) {
+        if (data != null && validPassword(req.body.senha, data.hash, data.salt)) {
             const token = jwt.sign({ id: req.body.nome || req.body.user }, 'segredo',
                 { expiresIn: 300 });
             return res.json({ auth: true, token: token });
@@ -86,5 +86,10 @@ function verificaJWT(req, res, next) {
     });
 }
 
+var { createHash } = require('crypto');
+function validPassword (senha, hashBD, saltBD) {
+    const hashCalculado = createHash('sha256').update(senha + saltBD).digest('hex');
+    return hashCalculado === hashBD;
+};
 
 module.exports = router;

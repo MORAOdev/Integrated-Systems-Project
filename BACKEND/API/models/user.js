@@ -4,9 +4,8 @@ var userSchema = new mongoose.Schema({
       unique: true,
       type: String
   },
-  senha: {
-      type: String
-  },
+  hash: String,
+  salt: String
 },
   {
     versionKey: false
