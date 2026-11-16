@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router()
 const modeloTarefa = require('../models/tarefa');
+const userModel = require('../models/user');
 
 router.post('/post', verificaJWT, async(req, res) => {
     const objetoTarefa = new modeloTarefa({
@@ -54,6 +55,21 @@ router.post('/login', (req, res, next) => {
         return res.json({ auth: true, token: token });
     }
     res.status(500).json({ message: 'Login invalido!' });
+})
+
+var jwt = require('jsonwebtoken');
+router.post('/login', async (req, res) => {
+    try {
+        const data = await userModel.findOne({ 'nome': req.body.nome });
+        if (data != null && data.senha === req.body.senha) {
+            const token = jwt.sign({ id: req.body.user }, 'segredo',
+                { expiresIn: 300 });
+            return res.json({ token: token });
+        }
+        res.status(500).json({ message: 'Login invalido!' });
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
 })
 
 function verificaJWT(req, res, next) {
