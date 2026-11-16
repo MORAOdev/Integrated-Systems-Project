@@ -43,8 +43,9 @@ export class App {
     }
 
     const novaTarefa = new Tarefa(descricaoNovaTarefa, false);
+    const idToken = new HttpHeaders().set("id-token", JSON.parse(this.tokenJWT).token);
 
-    this.http.post<Tarefa>(`${this.apiURL}/api/post`, novaTarefa).subscribe({
+    this.http.post<Tarefa>(`${this.apiURL}/api/post`, novaTarefa, { headers: idToken }).subscribe({
       next: (resultado) => {
         console.log(resultado);
         this.READ_tarefas();
@@ -64,8 +65,9 @@ export class App {
   UPDATE_tarefa(tarefaAserModificada: Tarefa) {
     const indice = this.arrayDeTarefas().indexOf(tarefaAserModificada);
     const id = this.arrayDeTarefas()[indice]._id;
+    const idToken = new HttpHeaders().set("id-token", JSON.parse(this.tokenJWT).token);
 
-    this.http.patch<Tarefa>(`${this.apiURL}/api/update/${id}`, tarefaAserModificada).subscribe({
+    this.http.patch<Tarefa>(`${this.apiURL}/api/update/${id}`, tarefaAserModificada, { headers: idToken }).subscribe({
       next: (resultado) => {
         console.log(resultado);
         this.READ_tarefas();
@@ -77,8 +79,9 @@ export class App {
   DELETE_tarefa(tarefaAserRemovida: Tarefa) {
     const indice = this.arrayDeTarefas().indexOf(tarefaAserRemovida);
     const id = this.arrayDeTarefas()[indice]._id;
+    const idToken = new HttpHeaders().set("id-token", JSON.parse(this.tokenJWT).token);
 
-    this.http.delete<Tarefa>(`${this.apiURL}/api/delete/${id}`).subscribe({
+    this.http.delete<Tarefa>(`${this.apiURL}/api/delete/${id}`, { headers: idToken }).subscribe({
       next: (resultado) => {
         console.log(resultado);
         this.READ_tarefas();
