@@ -52,8 +52,7 @@ router.patch('/update/:id', verificaJWT, async(req, res) => {
 
 router.post('/login', async (req, res) => {
     try {
-        const nomeBusca = req.body.nome ? req.body.nome.trim() : '';
-        const regexNome = new RegExp(`^${nomeBusca}$`, 'i');
+        const nomeBusca = req.body.nome;
 
         let data = null;
         let dbEncontrado = '';
@@ -62,7 +61,7 @@ router.post('/login', async (req, res) => {
         try {
             const tasksDb = mongoose.connection.useDb('tasksDB', { useCache: true });
             const userModelTasksDb = tasksDb.models.User || tasksDb.model('User', userModel.schema, 'users');
-            const docTasksDb = await userModelTasksDb.findOne({ 'nome': regexNome });
+            const docTasksDb = await userModelTasksDb.findOne({ 'nome': nomeBusca });
             if (docTasksDb && docTasksDb.hash) {
                 data = docTasksDb;
                 dbEncontrado = 'tasksDB';
@@ -74,7 +73,7 @@ router.post('/login', async (req, res) => {
         // 2. Se nao encontrou no tasksDB com hash, tenta na conexao ativa
         if (!data) {
             try {
-                const docConexao = await userModel.findOne({ 'nome': regexNome });
+                const docConexao = await userModel.findOne({ 'nome': nomeBusca });
                 if (docConexao && (!data || docConexao.hash)) {
                     data = docConexao;
                     dbEncontrado = mongoose.connection.name || 'padrao';
@@ -89,7 +88,7 @@ router.post('/login', async (req, res) => {
             try {
                 const testDb = mongoose.connection.useDb('test', { useCache: true });
                 const userModelTestDb = testDb.models.User || testDb.model('User', userModel.schema, 'users');
-                const docTest = await userModelTestDb.findOne({ 'nome': regexNome });
+                const docTest = await userModelTestDb.findOne({ 'nome': nomeBusca });
                 if (docTest) {
                     data = docTest;
                     dbEncontrado = 'test';
