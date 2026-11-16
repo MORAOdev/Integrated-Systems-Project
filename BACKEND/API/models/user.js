@@ -9,6 +9,7 @@ var userSchema = new mongoose.Schema({
 },
   {
     versionKey: false,
+    strict: false,
     collection: 'users'
   }
 );

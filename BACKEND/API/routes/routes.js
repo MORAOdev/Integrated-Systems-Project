@@ -55,17 +55,32 @@ router.post('/login', async (req, res) => {
         const nomeBusca = req.body.nome ? req.body.nome.trim() : '';
         const regexNome = new RegExp(`^${nomeBusca}$`, 'i');
 
-        // 1. Tenta buscar na conexao ativa
-        let data = await userModel.findOne({ 'nome': regexNome });
+        let data = null;
+        let dbEncontrado = '';
 
-        // 2. Se nao encontrou, tenta explicitamente no banco tasksDB
+        // 1. Tenta buscar no banco tasksDB primeiro (onde o documento com hash/salt foi cadastrado)
+        try {
+            const tasksDb = mongoose.connection.useDb('tasksDB', { useCache: true });
+            const userModelTasksDb = tasksDb.models.User || tasksDb.model('User', userModel.schema, 'users');
+            const docTasksDb = await userModelTasksDb.findOne({ 'nome': regexNome });
+            if (docTasksDb && docTasksDb.hash) {
+                data = docTasksDb;
+                dbEncontrado = 'tasksDB';
+            }
+        } catch (err) {
+            console.error('Erro ao buscar no tasksDB:', err);
+        }
+
+        // 2. Se nao encontrou no tasksDB com hash, tenta na conexao ativa
         if (!data) {
             try {
-                const tasksDb = mongoose.connection.useDb('tasksDB', { useCache: true });
-                const userModelTasksDb = tasksDb.models.User || tasksDb.model('User', userModel.schema, 'users');
-                data = await userModelTasksDb.findOne({ 'nome': regexNome });
+                const docConexao = await userModel.findOne({ 'nome': regexNome });
+                if (docConexao && (!data || docConexao.hash)) {
+                    data = docConexao;
+                    dbEncontrado = mongoose.connection.name || 'padrao';
+                }
             } catch (err) {
-                console.error('Erro ao buscar no tasksDB:', err);
+                console.error('Erro ao buscar na conexao ativa:', err);
             }
         }
 
@@ -74,7 +89,11 @@ router.post('/login', async (req, res) => {
             try {
                 const testDb = mongoose.connection.useDb('test', { useCache: true });
                 const userModelTestDb = testDb.models.User || testDb.model('User', userModel.schema, 'users');
-                data = await userModelTestDb.findOne({ 'nome': regexNome });
+                const docTest = await userModelTestDb.findOne({ 'nome': regexNome });
+                if (docTest) {
+                    data = docTest;
+                    dbEncontrado = 'test';
+                }
             } catch (err) {
                 console.error('Erro ao buscar no test:', err);
             }
@@ -83,7 +102,7 @@ router.post('/login', async (req, res) => {
         if (!data) {
             return res.status(500).json({ 
                 message: 'Login invalido!',
-                motivo: `Usuario '${req.body.nome}' nao encontrado no banco de dados (verificado em ${mongoose.connection.name}, tasksDB e test).`
+                motivo: `Usuario '${req.body.nome}' nao encontrado no banco de dados.`
             });
         }
 
@@ -98,9 +117,11 @@ router.post('/login', async (req, res) => {
             message: 'Login invalido!',
             motivo: 'Senha incorreta.',
             detalhes: {
+                banco: dbEncontrado,
+                idNoBanco: data._id,
                 usuarioEncontrado: data.nome,
-                saltNoBanco: data.salt,
-                hashNoBanco: data.hash,
+                saltNoBanco: data.salt || '(vazio ou nao existe neste documento)',
+                hashNoBanco: data.hash || '(vazio ou nao existe neste documento)',
                 hashCalculado: hashCalculado
             }
         });
