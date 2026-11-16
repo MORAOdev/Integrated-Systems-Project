@@ -9,6 +9,7 @@ const schemaTarefa = new mongoose.Schema({
         type: Boolean
     },
 }, {
-    versionKey: false
-})
-module.exports = mongoose.model('Tarefa', schemaTarefa)
+    versionKey: false,
+    collection: 'tasks'
+});
+module.exports = mongoose.model('Tarefa', schemaTarefa, 'tasks');
